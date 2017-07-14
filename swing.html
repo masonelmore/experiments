@@ -14,15 +14,15 @@
             // Base speed for circle animation.  Animation speed slows down the further away from 0 this is.
             var speed = 2;
             // Brightness range of the circle as it gets "closer" and "further" away.
-            var alphaMin = 0.7;
+            var alphaMin = 0.5;
             var alphaMax = 1.0;
             // Size range of the circle as it gets "closer" and "further" away.
-            var scaleMin = 0.7;
-            var scaleMax = 1.0;
+            var sizeMin = 0.5;
+            var sizeMax = 1.0;
 
             var canvas = document.getElementById("canvas");
             var context = canvas.getContext("2d");
-            var numCircles = 20;
+            var numCircles = 16;
             // Evenly space circles along the vertical axis.
             var radius = canvas.height / numCircles / 2;
             // The furthest the circle can travel is to the edge of the canvas.
@@ -44,12 +44,19 @@
 
                 context.translate(canvas.width/2, 0);
                 circles.forEach(function(circle) {
-                    var alpha = ((Math.cos(counter/circle.speed) + 1) * (alphaMax - alphaMin) / 2) + alphaMin;
-                    var scale = ((Math.cos(counter/circle.speed) + 1) * (scaleMax - scaleMin) / 2) + scaleMin;
+                    // Scale the size and alpha ranges based on the amplitude.
+                    var scale = circle.amplitude / maxAmplitude;
+                    var alphaMedian = (alphaMin + alphaMax) / 2;
+                    var aRange = (alphaMax - alphaMin) * scale;
+                    var alpha = ((Math.cos(counter/circle.speed)) * aRange / 2) + alphaMedian;
+                    var sizeMedian = (sizeMin + sizeMax) / 2;
+                    var sRange = (sizeMax - sizeMin) * scale;
+                    var size = ((Math.cos(counter/circle.speed) ) * sRange / 2) + sizeMedian;
+
                     context.fillStyle="rgba(0, 0, 0, " + alpha + ")";
                     circle.x = Math.sin(counter/circle.speed) * circle.amplitude;
                     context.beginPath();
-                    context.arc(circle.x, circle.y, radius * scale, 0, 2*Math.PI);
+                    context.arc(circle.x, circle.y, radius * size, 0, 2*Math.PI);
                     context.fill();
                 });
                 context.translate(-(canvas.width/2), 0);
