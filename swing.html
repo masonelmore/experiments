@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Swing</title>
+    </head>
+    <body>
+        <canvas id="canvas" width="400" height="600" style="border: 1px solid black"></canvas>
+        <script type="text/javascript">
+            // Milliseconds between each render/update.
+            var updateDelay = 20;
+            // Basically a lazy "clock".  Each render/update adds one tick to the counter.
+            var counter = 0;
+            // Base speed for circle animation.  Animation speed slows down the further away from 0 this is.
+            var speed = 2;
+            // Brightness range of the circle as it gets "closer" and "further" away.
+            var alphaMin = 0.7;
+            var alphaMax = 1.0;
+            // Size range of the circle as it gets "closer" and "further" away.
+            var scaleMin = 0.7;
+            var scaleMax = 1.0;
+
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext("2d");
+            var numCircles = 20;
+            // Evenly space circles along the vertical axis.
+            var radius = canvas.height / numCircles / 2;
+            // The furthest the circle can travel is to the edge of the canvas.
+            var maxAmplitude = (canvas.width - radius) / 2;
+            var circles = [];
+            for (var i = 0; i < numCircles; i++) {
+                circles.push({
+                    x: 0,
+                    y: radius * 2 * i + radius,
+                    radius: radius,
+                    amplitude: i / numCircles * maxAmplitude,
+                    speed: maxAmplitude / i * speed
+                });
+            }
+
+            function render() {
+                context.fillStyle="#FFFFFF";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                context.translate(canvas.width/2, 0);
+                circles.forEach(function(circle) {
+                    var alpha = ((Math.cos(counter/circle.speed) + 1) * (alphaMax - alphaMin) / 2) + alphaMin;
+                    var scale = ((Math.cos(counter/circle.speed) + 1) * (scaleMax - scaleMin) / 2) + scaleMin;
+                    context.fillStyle="rgba(0, 0, 0, " + alpha + ")";
+                    circle.x = Math.sin(counter/circle.speed) * circle.amplitude;
+                    context.beginPath();
+                    context.arc(circle.x, circle.y, radius * scale, 0, 2*Math.PI);
+                    context.fill();
+                });
+                context.translate(-(canvas.width/2), 0);
+
+                counter++;
+            }
+
+            setInterval(render, updateDelay);
+        </script>
+    </body>
+</html>
