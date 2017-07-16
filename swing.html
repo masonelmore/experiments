@@ -7,12 +7,12 @@
     <body>
         <canvas id="canvas" width="400" height="600" style="border: 1px solid black"></canvas>
         <script type="text/javascript">
+            var fps = 60;
             // Milliseconds between each render/update.
-            var updateDelay = 20;
-            // Basically a lazy "clock".  Each render/update adds one tick to the counter.
-            var counter = 0;
-            // Base speed for circle animation.  Animation speed slows down the further away from 0 this is.
-            var speed = 2;
+            var updateDelay = 1000 / fps;
+            var startTime = Date.now();
+            // Maximum frequency (Hz) of the bottommost circle.
+            var maxFrequency = 1;
             // Brightness range of the circle as it gets "closer" and "further" away.
             var alphaMin = 0.5;
             var alphaMax = 1.0;
@@ -28,40 +28,41 @@
             // The furthest the circle can travel is to the edge of the canvas.
             var maxAmplitude = (canvas.width - radius) / 2;
             var circles = [];
-            for (var i = 0; i < numCircles; i++) {
+            for (var i = 1; i <= numCircles; i++) {
                 circles.push({
                     x: 0,
-                    y: radius * 2 * i + radius,
+                    y: radius * 2 * (i - 1) + radius,
                     radius: radius,
                     amplitude: i / numCircles * maxAmplitude,
-                    speed: maxAmplitude / i * speed
+                    frequency: i / numCircles * maxFrequency
                 });
             }
 
             function render() {
+                var timeElapsed = Date.now() - startTime;
+
                 context.fillStyle="#FFFFFF";
                 context.fillRect(0, 0, canvas.width, canvas.height);
 
                 context.translate(canvas.width/2, 0);
                 circles.forEach(function(circle) {
+                    // TODO: Extract forumals into functions.  Lots of duplication here and it would clean it up.
                     // Scale the size and alpha ranges based on the amplitude.
                     var scale = circle.amplitude / maxAmplitude;
                     var alphaMedian = (alphaMin + alphaMax) / 2;
                     var aRange = (alphaMax - alphaMin) * scale;
-                    var alpha = ((Math.cos(counter/circle.speed)) * aRange / 2) + alphaMedian;
+                    var alpha = (Math.cos(timeElapsed * (2.0*Math.PI*circle.frequency/1000)) * aRange / 2) + alphaMedian;
                     var sizeMedian = (sizeMin + sizeMax) / 2;
                     var sRange = (sizeMax - sizeMin) * scale;
-                    var size = ((Math.cos(counter/circle.speed) ) * sRange / 2) + sizeMedian;
+                    var size = (Math.cos(timeElapsed * (2.0*Math.PI*circle.frequency/1000)) * sRange / 2) + sizeMedian;
 
                     context.fillStyle="rgba(0, 0, 0, " + alpha + ")";
-                    circle.x = Math.sin(counter/circle.speed) * circle.amplitude;
+                    circle.x = Math.sin(timeElapsed * ((2.0*Math.PI*circle.frequency)/1000)) * circle.amplitude;
                     context.beginPath();
                     context.arc(circle.x, circle.y, radius * size, 0, 2*Math.PI);
                     context.fill();
                 });
                 context.translate(-(canvas.width/2), 0);
-
-                counter++;
             }
 
             setInterval(render, updateDelay);
