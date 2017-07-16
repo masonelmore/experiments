@@ -26,7 +26,7 @@
             // Evenly space circles along the vertical axis.
             var radius = canvas.height / numCircles / 2;
             // The furthest the circle can travel is to the edge of the canvas.
-            var maxAmplitude = (canvas.width - radius) / 2;
+            var maxAmplitude = (canvas.width - radius * 1.5) / 2;
             var circles = [];
             for (var i = 1; i <= numCircles; i++) {
                 circles.push({
