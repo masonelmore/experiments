@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Swirl</title>
+    </head>
+    <body>
+        <canvas id="canvas" width="600" height="600"></canvas>
+        <script type="text/javascript">
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext("2d");
+
+            var fps = 60
+            var updateDelay = 1000 / fps;
+            var startTime = Date.now();
+
+            var numCircles = 1;
+            var maxCircles = 8;
+            var radius = canvas.width / 50;
+            var frequency = 0.5;
+            var amplitude = (canvas.width - radius * 2) / 2;
+
+            var cyclesBeforeTransition = 1;
+            var transitionDelay = cyclesBeforeTransition * 1000 * 1 / frequency;
+            var nextTransition = transitionDelay;
+            var increaseEveryTransition = true;
+
+            function render() {
+                var timeElapsed = Date.now() - startTime;
+
+                context.fillStyle = "#FFFFFF";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                context.fillStyle = "#000000";
+                context.translate(canvas.width / 2, canvas.height / 2);
+                var radiansPerCircle =  Math.PI / numCircles;
+                for (var i = 0; i < numCircles; i++) {
+                    var angle = i * radiansPerCircle;
+                    var distance = amplitude * Math.sin(2 * Math.PI * frequency * (timeElapsed / 1000) + angle);
+                    var x = distance * Math.cos(angle);
+                    var y = distance * Math.sin(angle);
+                    context.beginPath();
+                    context.arc(x, y, radius, 0, 2*Math.PI);
+                    context.fill();
+                }
+                context.translate(-(canvas.width / 2), -(canvas.height / 2));
+
+                if (timeElapsed >= nextTransition) {
+                    nextTransition += transitionDelay;
+                    if (increaseEveryTransition) {
+                        numCircles++;
+                        increaseEveryTransition = numCircles < maxCircles;
+                    } else {
+                        numCircles--;
+                        increaseEveryTransition = numCircles == 1;
+                    }
+                }
+            }
+
+            setInterval(render, updateDelay);
+        </script>
+    </body>
+</html>
