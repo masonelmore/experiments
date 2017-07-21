@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Squiral</title>
+    </head>
+    <body>
+        <h1>Squiral</h1>
+        <h3>When a square befriends a spiral.</h3>
+        <svg id="squiral-svg" width="400" height="400">
+            <path id="squiral-path" fill="none" stroke="black" />
+        </svg>
+        <script type="text/javascript">
+            class Path {
+                constructor() {
+                    this.instructions = [];
+                    this.lastInstruction = "";
+                }
+
+                getDescription() {
+                    return this.instructions.join(" ");
+                }
+
+                _addInstruction(instruction, x, y) {
+                    // I _think_ the last instruction provided is used for new
+                    // coordinates without a preceding instruction.
+                    // I have _not_ fully tested this, but it seems to work.
+                    if (this.lastInstruction == instruction) {
+                        instruction = "";
+                    } else {
+                        this.lastInstruction = instruction;
+                    }
+                    this.instructions.push(instruction + x + "," + y);
+                }
+
+                moveTo(x, y) {
+                    this._addInstruction("M", x, y);
+                }
+
+                lineTo(x, y) {
+                    this._addInstruction("L", x, y);
+                }
+            };
+
+            function radians(degrees) {
+                return degrees * Math.PI / 180;
+            }
+
+            // http://phrogz.net/angle-between-three-points
+            // Center point is p1; angle returned in radians
+            function angle(p0, p1, p2) {
+              var a = Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2),
+                  b = Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2),
+                  c = Math.pow(p2.x - p0.x, 2) + Math.pow(p2.y - p0.y, 2);
+              return Math.acos((a + b - c) / Math.sqrt(4 * a * b));
+            }
+
+            function distance(a, b) {
+                return Math.sqrt(
+                    Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)
+                );
+            }
+
+            function bearing(a, b) {
+                return Math.atan2(b.y - a.y, b.x - a.x);
+            }
+
+            /*
+                                            * C
+                                            |
+                                            |
+                                            |
+                                            |
+                                            |
+                                        .   * D <- next point
+                            z    .          |
+                          .                 | y
+                   .                        |
+            A *-----------------------------* B
+                            x
+
+            angleA: Angle of DAB (ಠ_ಠ) in radians.
+            a, b, c: Points of the triangle shown above.
+            Strategy: Find length of y and place D along the line BC.
+             */
+            function nextPoint(angleA, a, b, c) {
+                var angleB = angle(a, b, c);
+                var angleD = radians(180) - angleA - angleB;
+                var lengthX = distance(a, b);
+                var lengthY = lengthX / Math.sin(angleD) * Math.sin(angleA);
+                var bearingBC = bearing(b, c);
+                var nextPoint = {
+                    x: b.x + Math.cos(bearingBC) * lengthY,
+                    y: b.y + Math.sin(bearingBC) * lengthY
+                };
+                return nextPoint;
+            }
+
+            var svg = document.getElementById("squiral-svg");
+            var squiral = document.getElementById("squiral-path");
+            // TODO: Using clientWidth/clientHeight is probably wrong here.
+            var width = svg.clientWidth;
+            var height = svg.clientHeight;
+
+            var spiralAngle = radians(5);
+            var points = [
+                { x: 0, y: 0 },
+                { x: 0, y: height },
+                { x: width, y: height },
+                { x: width, y: 0 }
+            ];
+
+            // TODO: Figure out how to end the spiral.
+            var i = 0;
+            while (i < 86) {
+                var a = points[points.length - 1];
+                var b = points[i];
+                var c = points[i + 1];
+                points.push(nextPoint(spiralAngle, a, b, c));
+                i++;
+            }
+
+            var path = new Path();
+            path.moveTo(points[3].x, points[3].y);
+            points.forEach(function (point) {
+                path.lineTo(point.x, point.y);
+            });
+            squiral.setAttribute("d", path.getDescription());
+            // Animate the squiral.
+            // https://jakearchibald.com/2013/animated-line-drawing-svg/
+            var length = squiral.getTotalLength();
+            squiral.style.transition = squiral.style.WebkitTransition = "none";
+            squiral.style.strokeDasharray = length + " " + length;
+            squiral.style.strokeDashoffset = length;
+            squiral.getBoundingClientRect();
+            squiral.style.transition = squiral.style.WebkitTransition = "stroke-dashoffset 4s ease-in-out";
+            squiral.style.strokeDashoffset = "0";
+        </script>
+    </body>
+</html>
