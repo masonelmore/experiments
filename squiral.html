@@ -46,6 +46,14 @@
                 return degrees * Math.PI / 180;
             }
 
+            function degrees(radians) {
+                return radians * 180 / Math.PI;
+            }
+
+            function closeEnough(x, y) {
+                return Math.abs(x - y) < 1e-5;
+            }
+
             // http://phrogz.net/angle-between-three-points
             // Center point is p1; angle returned in radians
             function angle(p0, p1, p2) {
@@ -63,6 +71,28 @@
 
             function bearing(a, b) {
                 return Math.atan2(b.y - a.y, b.x - a.x);
+            }
+
+            function isConvex(verticies) {
+                // https://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
+                // Interior angles must not exceed 180 degrees and the sum of
+                // all interior angles must be equal to 360.
+                var sumOfAngles = 0;
+                var n = verticies.length;
+                for (var i = 0; i < n; i++) {
+                    var a = verticies[i];
+                    var b = verticies[(i + 1) % n];
+                    var c = verticies[(i + 2) % n]
+                    var vAngle = angle(a, b, c);
+                    if (vAngle > radians(180)) {
+                        return false;
+                    }
+                    sumOfAngles += vAngle;
+                }
+                if (!closeEnough(degrees(sumOfAngles), 360)) {
+                    return false;
+                }
+                return true;
             }
 
             /*
@@ -110,13 +140,19 @@
                 { x: width, y: 0 }
             ];
 
-            // TODO: Figure out how to end the spiral.
             var i = 0;
-            while (i < 86) {
-                var a = points[points.length - 1];
+            while (true) {
+                var a = points[i + 3];
                 var b = points[i];
                 var c = points[i + 1];
-                points.push(nextPoint(spiralAngle, a, b, c));
+                var d = nextPoint(spiralAngle, a, b, c);
+                // The squiral is finished if the last four points create a
+                // complex (garbage) or concave (shouldn't happen?) polygon.
+                if (!isConvex(points.slice(-3).concat([d]))) {
+                    console.log("Finished after " + i + " iterations.");
+                    break;
+                }
+                points.push(d);
                 i++;
             }
 
