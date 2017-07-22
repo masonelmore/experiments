@@ -1,6 +1,6 @@
-# animations
-[Swing](https://masonelmore.github.io/animations/swing.html)
+# experiments
+[Swing](https://masonelmore.github.io/experiments/swing.html)
 
-[Swirl](https://masonelmore.github.io/animations/swirl.html)
+[Swirl](https://masonelmore.github.io/experiments/swirl.html)
 
-[Squiral](https://masonelmore.github.io/animations/squiral.html)
+[Squiral](https://masonelmore.github.io/experiments/squiral.html)
